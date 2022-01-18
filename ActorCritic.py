@@ -20,7 +20,7 @@ class ActorCritic(nn.Module):
         self.critic = nn.Linear(hidden_layer[-1], 1)
 
     def forward(self):
-        pass
+        raise NotImplementedError
 
     def act(self, state):
         if isinstance(state, np.ndarray):
@@ -31,12 +31,12 @@ class ActorCritic(nn.Module):
 
         dist = Normal(act_mean, act_std)
         action = dist.sample()
-        log_prob = dist.log_prob(action)
+        log_prob = dist.log_prob(action).squeeze(dim=1)
         return action.detach().cpu().numpy(), log_prob
 
     def evaluate(self, state):
         if isinstance(state, np.ndarray):
             state = torch.tensor(state).float()
         state_feature = self.base(state)
-        action = self.critic(state_feature)
+        action = self.critic(state_feature).detach().squeeze(dim=1)
         return action

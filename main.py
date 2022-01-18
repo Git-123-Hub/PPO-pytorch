@@ -1,8 +1,10 @@
 import gym
+import torch
 from stable_baselines3.common.utils import set_random_seed
 from stable_baselines3.common.vec_env import SubprocVecEnv
 
 from ActorCritic import ActorCritic
+from Buffer import Buffer
 
 
 def make_env(env_id, rank, seed=0):
@@ -32,14 +34,34 @@ if __name__ == '__main__':
     ac = ActorCritic(state_size, action_size)
     print(ac)
 
-    obs = envs.reset()
-    rewards = [0] * envs_n
-    for _ in range(10):
-        action, _ = ac.act(obs)
-        state_value = ac.evaluate(obs)
-        obs, reward, dones, infos = envs.step(action)
-        rewards = [a + b for a, b in zip(rewards, reward)]
-        # print(rewards)
+    buffer = Buffer(10, 5)
+
+    state = envs.reset()  # todo: how to handle next state
+    buffer.states[0] = state  # initial state
+    episode_reward = [0] * envs_n
+    for _ in range(100):
+        with torch.no_grad():
+            action, action_log_prob = ac.act(state)
+            state_value = ac.evaluate(state)
+
+        state, reward, dones, infos = envs.step(action)
+        episode_reward = [a + b for a, b in zip(episode_reward, reward)]
         for i, done in enumerate(dones):
             if done:
-                rewards[i] = 0
+                episode_reward[i] = 0
+
+        buffer.add(state, state_value.detach().numpy(), action, action_log_prob.detach().numpy(), reward, dones)
+        # NOTE that we are storing `next_state` and `current_state_value`
+
+    with torch.no_grad():
+        state_value = ac.evaluate(state)
+    buffer.state_values[-1] = state_value.detach().numpy()  # last state value
+
+    buffer.compute_gae()
+    i = 1
+    for batch in buffer.data_generator():
+        print(f'batch: {i}, states size: {batch[0].shape}')
+        i += 1
+        # print(batch)
+
+    buffer.reset()
