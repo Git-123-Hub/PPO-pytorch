@@ -7,7 +7,7 @@ class Buffer:
     def __init__(self, capacity, batch_size, gamma=0.99, gae_lambda=0.95):
         self.capacity = capacity
         self._index = 0
-        self._size = 0
+        self.size = 0
         self.batch_size = batch_size
         self.gamma = gamma
         self.gae_lambda = gae_lambda
@@ -44,12 +44,12 @@ class Buffer:
         self.dones[self._index] = done
 
         self._index = (self._index + 1) % self.capacity
-        if self._size < self.capacity:
-            self._size += 1
+        if self.size < self.capacity:
+            self.size += 1
 
     def compute_gae(self):
         gae = 0
-        for i in reversed(range(self._size)):
+        for i in reversed(range(self.size)):
             delta = self.rewards[i] \
                     + self.state_values[i + 1] * (1 - self.dones[i + 1]) * self.gamma \
                     - self.state_values[i]
@@ -64,7 +64,7 @@ class Buffer:
         all_log_probs = np.stack(self.action_log_probs).reshape(-1)
         all_advantages = np.stack(self.advantages).reshape(-1)
 
-        total_num = self._size * self.states[0].shape[0]  # size * num_process
+        total_num = self.size * self.states[0].shape[0]  # size * num_process
         index_sampler = BatchSampler(SubsetRandomSampler(range(total_num)), self.batch_size, drop_last=True)
         for indices in index_sampler:
             # retrieve data and transfer to tensor
@@ -73,4 +73,4 @@ class Buffer:
             actions = torch.from_numpy(all_actions[indices]).float()
             action_log_probs = torch.from_numpy(all_log_probs[indices]).float()
             advantages = torch.from_numpy(all_advantages[indices]).float()
-            yield states, state_values, actions, action_log_probs, advantages
+            yield states, state_values, actions, action_log_probs, advantages, indices
