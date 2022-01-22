@@ -4,39 +4,61 @@ from torch import nn
 from torch.distributions import Normal
 
 
+def init(module, weight_init, bias_init, gain=1):
+    weight_init(module.weight.data, gain=gain)
+    bias_init(module.bias.data)
+    return module
+
+
 class ActorCritic(nn.Module):
 
     def __init__(self, state_size, action_size, hidden_layer=None):
         super(ActorCritic, self).__init__()
-        if hidden_layer is None: hidden_layer = [64, 64]
-        hidden_layer.insert(0, state_size)
+        init_ = lambda m: init(m, nn.init.orthogonal_, lambda x: nn.init.constant_(x, 0), np.sqrt(2))
+        init_1 = lambda m: init(m, nn.init.orthogonal_, lambda x: nn.init.constant_(x, 0))
+        self.actor = nn.Sequential(
+            init_(nn.Linear(state_size, 64)),
+            nn.Tanh(),
+            init_(nn.Linear(64, 64)),
+            nn.Tanh(),
+            init_1(nn.Linear(64, action_size)),
+        )
 
-        base_layer = []
-        for i in range(len(hidden_layer) - 1):
-            base_layer.append(nn.Linear(hidden_layer[i], hidden_layer[i + 1]))
-        self.base = nn.Sequential(*base_layer)
-
-        self.actor = nn.Linear(hidden_layer[-1], action_size)  # output mean
-        self.critic = nn.Linear(hidden_layer[-1], 1)
+        self.critic = nn.Sequential(
+            init_(nn.Linear(state_size, 64)),
+            nn.Tanh(),
+            init_(nn.Linear(64, 64)),
+            nn.Tanh(),
+            init_(nn.Linear(64, 1))
+        )
 
     def forward(self):
         raise NotImplementedError
 
-    def act(self, state):
+    def get_dist(self, state):
+        """get the action distribution under `state`"""
         if isinstance(state, np.ndarray):
             state = torch.tensor(state).float()
-        state_feature = self.base(state)
-        act_mean = self.actor(state_feature)
+        act_mean = self.actor(state)
         act_std = torch.ones_like(act_mean)
-
         dist = Normal(act_mean, act_std)
+        return dist
+
+    def act(self, state):
+        dist = self.get_dist(state)
         action = dist.sample()
         log_prob = dist.log_prob(action).squeeze(dim=1)
         return action.detach().cpu().numpy(), log_prob
 
+    def get_action_log_prob(self, state, action):
+        """get the log prob of execute action in state"""
+        dist = self.get_dist(state)
+        log_prob = dist.log_prob(action).squeeze(dim=1)
+        return log_prob
+
     def evaluate(self, state):
+        """get the estimated state value of `state`"""
         if isinstance(state, np.ndarray):
             state = torch.tensor(state).float()
-        state_feature = self.base(state)
-        action = self.critic(state_feature).detach().squeeze(dim=1)
-        return action
+        state_value = self.critic(state).squeeze(dim=1)
+        return state_value
