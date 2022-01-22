@@ -21,6 +21,8 @@ class Buffer:
         self.action_log_probs = np.zeros(capacity, dtype=object)
 
         self.advantages = np.zeros(capacity, dtype=object)
+        self.discount_reward = np.zeros(capacity, dtype=object)
+        self.returns = np.zeros(capacity, dtype=object)
 
     def reset(self):
         self._index = 0
@@ -31,6 +33,8 @@ class Buffer:
         self.state_values.fill(0)
         self.action_log_probs.fill(0)
         self.advantages.fill(0)
+        self.discount_reward.fill(0)
+        self.returns.fill(0)
 
     def add(self, state, state_value, action, action_log_prob, reward, done):
         self.states[self._index + 1] = state
@@ -54,7 +58,15 @@ class Buffer:
                     + self.state_values[i + 1] * (1 - self.dones[i + 1]) * self.gamma \
                     - self.state_values[i]
             gae = delta + self.gamma * self.gae_lambda * (1 - self.dones[i + 1]) * gae
+            gae *= (1 - self.dones[i])
             self.advantages[i] = gae
+            self.returns[i] = gae + self.state_values[i]
+
+    def compute_discount_rewards(self):
+        r = 0
+        for i in reversed(range(self.size)):
+            r = self.rewards[i] + self.gamma * r * (1 - self.dones[i])
+            self.discount_reward[i] = r
 
     def data_generator(self):
         # reshape all the data
@@ -63,6 +75,11 @@ class Buffer:
         all_actions = np.stack(self.actions).reshape(-1, self.actions[0].shape[-1])
         all_log_probs = np.stack(self.action_log_probs).reshape(-1)
         all_advantages = np.stack(self.advantages).reshape(-1)
+        all_advantages = (all_advantages - all_advantages.mean()) / (all_advantages.std() + 1e-7)
+        all_discount_rewards = np.stack(self.discount_reward).reshape(-1)
+        all_discount_rewards = (all_discount_rewards - all_discount_rewards.mean()) / (all_discount_rewards.std() + 1e-7)
+        all_returns = np.stack(self.returns).reshape(-1)
+        all_returns = (all_returns - all_returns.mean()) / (all_returns.std() + 1e-7)
 
         total_num = self.size * self.states[0].shape[0]  # size * num_process
         index_sampler = BatchSampler(SubsetRandomSampler(range(total_num)), self.batch_size, drop_last=True)
@@ -73,4 +90,6 @@ class Buffer:
             actions = torch.from_numpy(all_actions[indices]).float()
             action_log_probs = torch.from_numpy(all_log_probs[indices]).float()
             advantages = torch.from_numpy(all_advantages[indices]).float()
-            yield states, state_values, actions, action_log_probs, advantages, indices
+            discount_rewards = torch.from_numpy(all_discount_rewards[indices]).float()
+            returns = torch.from_numpy(all_returns[indices]).float()
+            yield states, state_values, actions, action_log_probs, advantages, discount_rewards, returns
