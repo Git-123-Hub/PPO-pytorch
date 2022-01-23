@@ -19,19 +19,20 @@ def make_env(env_id, rank, seed=0):
         env.seed(seed + rank)
         return env
 
-    set_random_seed(seed)
     return _init
 
 
-total_steps = 1e3
-num_process = 3  # num of env running in parallel
-learn_interval = 1e2  # agent learn per 1e3 steps
+total_steps = 3e5
+num_process = 4  # num of env running in parallel
+learn_interval = 2400  # agent learn per 1e3 steps
 # Note that the buffer has to collect at least `learn_interval` experiences
 # consider `num_process`, envs should be interacted for `learn_interval/num_process` steps
 # which is also the capacity of buffer
-batch_size = 10
-learn_epoch = 10  # ppo learns 10 times each time learn
-
+batch_size = 600
+learn_epoch = 30  # ppo learns 10 times each time learn
+clip_ratio = 0.5
+learning_rate = 3e-4  # for actor critic
+# set_random_seed(124132)
 rewards_to_plot = []
 if __name__ == '__main__':
     # set_random_seed(0)  # make the program reproducible
@@ -76,6 +77,7 @@ if __name__ == '__main__':
             episode_reward = [a + b for a, b in zip(episode_reward, rewards)]
             for i, done in enumerate(dones):
                 if done:
+                    rewards_to_plot.append(episode_reward[i])
                     episode_rewards.append(episode_reward[i])
                     episode_reward[i] = 0
 
@@ -124,7 +126,6 @@ if __name__ == '__main__':
               f'mean: {np.mean(episode_rewards): .4f}, std: {np.std(episode_rewards): .4f},'
               f'actor loss: {np.mean(actor_loss_list): .4f}, critic loss: {np.mean(critic_loss_list): .4f}'
               )
-        rewards_to_plot.append(np.mean(episode_rewards))
 
     # plot episode reward
     fig, ax = plt.subplots()

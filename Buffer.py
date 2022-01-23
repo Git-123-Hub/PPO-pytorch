@@ -75,10 +75,11 @@ class Buffer:
         all_actions = np.stack(self.actions).reshape(-1, self.actions[0].shape[-1])
         all_log_probs = np.stack(self.action_log_probs).reshape(-1)
         all_advantages = np.stack(self.advantages).reshape(-1)
-        all_advantages = (all_advantages - all_advantages.mean()) / (all_advantages.std() + 1e-7)
         all_discount_rewards = np.stack(self.discount_reward).reshape(-1)
-        all_discount_rewards = (all_discount_rewards - all_discount_rewards.mean()) / (all_discount_rewards.std() + 1e-7)
         all_returns = np.stack(self.returns).reshape(-1)
+        # normalize
+        all_advantages = (all_advantages - all_advantages.mean()) / (all_advantages.std() + 1e-7)
+        all_discount_rewards = (all_discount_rewards - all_discount_rewards.mean()) / (all_discount_rewards.std() + 1e-7)
         all_returns = (all_returns - all_returns.mean()) / (all_returns.std() + 1e-7)
 
         total_num = self.size * self.states[0].shape[0]  # size * num_process
