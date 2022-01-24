@@ -29,6 +29,7 @@ running_rewards = []
 running_window = deque(maxlen=100)
 if __name__ == '__main__':
     args = get_args()
+    print(args)
 
     if args.seed is not None:
         set_random_seed(args.seed)  # make the program reproducible
@@ -66,6 +67,19 @@ if __name__ == '__main__':
         buffer.states[0] = state  # initial state
         current_reward = [0] * args.num_process
         episode_rewards = []
+
+        # decay learning rate and action distribution std
+        # todo: exponential
+        if args.lr_decay:
+            learning_rate = args.learning_rate - args.learning_rate * n / learn_times
+            learning_rate = max(learning_rate, 5e-5)
+            for param_group in optimizer.param_groups:
+                param_group['lr'] = learning_rate
+
+        if args.std_decay:
+            std = 1 - 1 * n / learn_times
+            std = max(std, 0.5)
+            ac.std = std
 
         # interact with envs
         envs_steps = math.ceil(args.learn_interval / args.num_process)
@@ -129,7 +143,10 @@ if __name__ == '__main__':
             f'{"-" * 10} update {n + 1}, experience collected: {buffer.size * args.num_process} {"-" * 10}\n'
             f'{len(episode_rewards)} episodes finished, '
             f'mean: {np.mean(episode_rewards): .4f}, std: {np.std(episode_rewards): .4f},'
-            f'actor loss: {np.mean(actor_loss_list): .4f}, critic loss: {np.mean(critic_loss_list): .4f}'
+            f'actor loss: {np.mean(actor_loss_list): .4f}, critic loss: {np.mean(critic_loss_list): .4f}, '
+            f'learning rate: {learning_rate if "learning_rate" in locals() else -1: .7f}, '
+            f'action std: {std if "std" in locals() else 1: .4f}, '
+            f'running reward: {np.mean(running_window): .4f}'
         )
 
     # training finishes, plot episode reward

@@ -15,8 +15,13 @@ def get_args():
                         help='number of experiences sampled for buffer each time learning')
     parser.add_argument('--learn-epoch', type=int, default=30, help='epoch of learning when ppo update')
     parser.add_argument('--clip-ratio', type=float, default=0.5, help='ppo clip parameter')
-    parser.add_argument('--learning-rate', type=float, default=3e-4, help='learning rate for actor-critic')
+    parser.add_argument('--learning-rate', type=float, default=1e-3,
+                        help='learning rate for actor-critic (initial value for learning rate if --lr-decay)')
     parser.add_argument('--clip-grad', type=float, default=0.5, help='clip gradient norm')
+    parser.add_argument('--lr-decay', action='store_true',
+                        help='decay learning rate of optimizer linearly during training')
+    parser.add_argument('--std-decay', action='store_true',
+                        help='decay std of action distribution linearly during training')
     # todo: linear decay: lr and std for ac; hidden-layer;
 
     args = parser.parse_args()

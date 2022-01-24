@@ -32,6 +32,8 @@ class ActorCritic(nn.Module):
             init_(nn.Linear(64, 1))
         )
 
+        self.std = 1
+
     def forward(self):
         raise NotImplementedError
 
@@ -40,20 +42,20 @@ class ActorCritic(nn.Module):
         if isinstance(state, np.ndarray):
             state = torch.tensor(state).float()
         act_mean = self.actor(state)
-        act_std = torch.ones_like(act_mean)
+        act_std = torch.ones_like(act_mean) * self.std
         dist = Normal(act_mean, act_std)
         return dist
 
     def act(self, state):
         dist = self.get_dist(state)
         action = dist.sample()
-        log_prob = dist.log_prob(action).squeeze(dim=1)
+        log_prob = dist.log_prob(action).sum(dim=1)
         return action.detach().cpu().numpy(), log_prob
 
     def get_action_log_prob(self, state, action):
         """get the log prob of execute action in state"""
         dist = self.get_dist(state)
-        log_prob = dist.log_prob(action).squeeze(dim=1)
+        log_prob = dist.log_prob(action).sum(dim=1)
         return log_prob
 
     def evaluate(self, state):
