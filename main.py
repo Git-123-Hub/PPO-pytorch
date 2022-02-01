@@ -1,6 +1,7 @@
 import math
 import os
 import pickle
+import time
 from collections import deque
 
 import gym
@@ -32,6 +33,7 @@ rewards_to_plot = []
 running_rewards = []
 running_window = deque(maxlen=100)
 if __name__ == '__main__':
+    start_time = time.time()
     args = get_args()
     print(args)
 
@@ -47,6 +49,11 @@ if __name__ == '__main__':
     # set up envs
     envs = SubprocVecEnv([make_env(args.env_name, i) for i in range(args.num_process)])
     envs = VecNormalize(envs, gamma=0.99)
+
+    goal = gym.make(args.env_name).spec.reward_threshold
+    if goal is None:
+        goal = {'Pendulum-v0': -165, }[args.env_name]
+    solved = False  # flag indicates whether the problem has been solved(running reward greater than goal)
 
     # set up actor critic
     state_size = envs.observation_space.shape[0]
@@ -99,9 +106,11 @@ if __name__ == '__main__':
             # NOTE that `state` has been updated as the next state
             for i, done in enumerate(dones):
                 if done:
+                    rewards_to_plot.append(infos[i]['episode']['r'])
                     running_window.append(infos[i]['episode']['r'])
                     running_rewards.append(np.mean(running_window))
-                    rewards_to_plot.append(infos[i]['episode']['r'])
+                    if not solved and running_rewards[-1] >= goal:
+                        solved = True
 
             buffer.add(state, state_value.numpy(), action, action_log_prob.numpy(), rewards, dones)
             # NOTE that we are storing `next_state` and `current_state_value`
@@ -160,7 +169,7 @@ if __name__ == '__main__':
     fig, ax = plt.subplots()
     ax.plot(range(1, len(rewards_to_plot) + 1), rewards_to_plot)
     ax.plot(range(1, len(running_rewards) + 1), running_rewards)
-    ax.hlines(-165, 1, len(rewards_to_plot) + 1, colors='red')
+    ax.hlines(y=goal, xmin=1, xmax=len(rewards_to_plot) + 1, color='red')
     filename = f'{args.env_name} result {total_files + 1}'
     plt.savefig(os.path.join(directory, filename + '.png'))
     # save training data
@@ -169,4 +178,8 @@ if __name__ == '__main__':
             'args': args,
             'rewards_to_plot': rewards_to_plot,
             'running_rewards': running_rewards,
+            'solved': solved,
         }, f)
+
+    print(f'training time: {time.time() - start_time:.2f}, '
+          f'problem f{"" if solved else "not "}solved and data has been saved to "{filename}"')
