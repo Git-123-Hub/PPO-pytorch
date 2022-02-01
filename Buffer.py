@@ -66,6 +66,7 @@ class Buffer:
         r = 0
         for i in reversed(range(self.size)):
             r = self.rewards[i] + self.gamma * r * (1 - self.dones[i])
+            r *= (1 - self.dones[i])  # if done, reset reward
             self.discount_reward[i] = r
 
     def data_generator(self):

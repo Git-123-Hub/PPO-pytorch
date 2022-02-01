@@ -42,7 +42,7 @@ class ActorCritic(nn.Module):
         if isinstance(state, np.ndarray):
             state = torch.tensor(state).float()
         act_mean = self.actor(state)
-        act_std = torch.ones_like(act_mean) * self.std
+        act_std = torch.ones_like(act_mean) * self.std ** 2
         dist = Normal(act_mean, act_std)
         return dist
 
