@@ -6,6 +6,8 @@ def get_args():
 
     parser.add_argument('--seed', type=int, default=None, help='random seed (default: None)')
     parser.add_argument('--env-name', type=str, default='Pendulum-v0', help='name of the environment')
+    parser.add_argument('--folder', type=str, default=None,
+                        help='folder to save fig and data during training')
     parser.add_argument('--total-steps', type=int, default=300000,
                         help='total steps that interact with the environment during training')
     parser.add_argument('--num-process', type=int, default=4, help='num of envs that run in parallel')

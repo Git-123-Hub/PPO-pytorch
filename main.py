@@ -149,7 +149,7 @@ if __name__ == '__main__':
         )
 
     # folder to save fig and data
-    directory = os.getcwd() + f'/{args.env_name}'
+    directory = args.folder if args.folder is not None else args.env_name
     if not os.path.exists(directory):
         os.makedirs(directory)
         total_files = 0
@@ -165,4 +165,8 @@ if __name__ == '__main__':
     plt.savefig(os.path.join(directory, filename + '.png'))
     # save training data
     with open(os.path.join(directory, filename + '.pkl'), 'wb') as f:
-        pickle.dump({}, f)
+        pickle.dump({
+            'args': args,
+            'rewards_to_plot': rewards_to_plot,
+            'running_rewards': running_rewards,
+        }, f)
