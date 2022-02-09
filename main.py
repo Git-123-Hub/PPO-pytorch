@@ -52,7 +52,8 @@ if __name__ == '__main__':
 
     goal = gym.make(args.env_name).spec.reward_threshold
     if goal is None:
-        goal = {'Pendulum-v0': -165, }[args.env_name]
+        goal = {'Pendulum-v0': -165,
+                'Walker2d-v3': 3000, }[args.env_name]
     solved = False  # flag indicates whether the problem has been solved(running reward greater than goal)
 
     # set up actor critic
@@ -147,7 +148,8 @@ if __name__ == '__main__':
                 loss = actor_loss + critic_loss
                 optimizer.zero_grad()
                 loss.backward()
-                nn.utils.clip_grad_norm_(ac.parameters(), args.clip_grad)
+                if args.clip_grad is not None:
+                    nn.utils.clip_grad_norm_(ac.parameters(), args.clip_grad)
                 optimizer.step()
 
         print(
@@ -182,4 +184,4 @@ if __name__ == '__main__':
         }, f)
 
     print(f'training time: {time.time() - start_time:.2f}, '
-          f'problem f{"" if solved else "not "}solved and data has been saved to "{filename}"')
+          f'problem {"" if solved else "not "}solved and data has been saved to "{filename}"')

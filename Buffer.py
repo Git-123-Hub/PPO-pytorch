@@ -80,8 +80,8 @@ class Buffer:
         all_returns = np.stack(self.returns).reshape(-1)
         # normalize
         all_advantages = (all_advantages - all_advantages.mean()) / (all_advantages.std() + 1e-7)
-        all_discount_rewards = (all_discount_rewards - all_discount_rewards.mean()) / (all_discount_rewards.std() + 1e-7)
-        all_returns = (all_returns - all_returns.mean()) / (all_returns.std() + 1e-7)
+        # all_discount_rewards = (all_discount_rewards - all_discount_rewards.mean()) / (all_discount_rewards.std() + 1e-7)
+        # all_returns = (all_returns - all_returns.mean()) / (all_returns.std() + 1e-7)
 
         total_num = self.size * self.states[0].shape[0]  # size * num_process
         index_sampler = BatchSampler(SubsetRandomSampler(range(total_num)), self.batch_size, drop_last=True)
