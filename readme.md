@@ -24,6 +24,14 @@ python main.py --env-name "Pendulum-v0" --learning-rate 0.0003 --learn-interval 
 
 ![Pendulum-v0](./results/Pendulum-v0.png)
 
+### HalfCheetah-v3
+
+```commandline
+python main.py --env-name "HalfCheetah-v3" --total-steps 5000000 --learn-interval 2000 --learning-rate 0.0007 --batch-size 2000
+```
+
+![HalfCheetah-v3](./results/HalfCheetah-v3.png)
+
 ### Swimmer-v3
 
 ```commandline

@@ -3,14 +3,17 @@ import os
 import pickle
 
 import matplotlib.pyplot as plt
-import numpy as np
 
 
 def analyze(folder):
-    """analyze the statistical performance based on all the training result in a specific folder"""
+    """plot all the running rewards of ppo training result on the same figure"""
     assert os.path.exists(folder), f'folder {folder} is not exist'
-    all_running_rewards = []
-    env_name = None
+
+    fig, ax = plt.subplots()
+    ax.set_xlabel('episode')
+    ax.set_ylabel('running reward')
+
+    env_name, goal = None, None
     for file in os.listdir(folder):
         filename, file_extension = os.path.splitext(file)
         if file_extension != '.pkl':
@@ -19,26 +22,15 @@ def analyze(folder):
             data = pickle.load(f)
             if env_name is None:
                 env_name = data['args'].env_name
+                goal = data['goal']
             else:
                 assert env_name == data['args'].env_name, "these data are not solving the same problem"
-            all_running_rewards.append(data['running_rewards'])
 
-    running_rewards = np.array(all_running_rewards)
+            running_rewards = data['running_rewards']
+            x = range(1, len(running_rewards) + 1)
+            ax.plot(x, running_rewards)
 
-    fig, ax = plt.subplots()
-    ax.set_xlabel('episode')
-    ax.set_ylabel('running reward')
-
-    x = np.arange(1, len(running_rewards[-1]) + 1)
-    mean = running_rewards.mean(axis=0)
-    std = running_rewards.std(axis=0)
-
-    color = 'blue'
-    ax.plot(x, mean, color=color, )
-    ax.plot(x, mean + std, color=color, alpha=0.2)
-    ax.plot(x, mean - std, color=color, alpha=0.2)
-    ax.fill_between(x, y1=mean - std, y2=mean + std, color=color, alpha=0.1)
-    ax.hlines(y=-165, xmin=1, xmax=x[-1], color='red')
+    # ax.hlines(y=goal, xmin=1, xmax=x[-1], color='red')  # plot goal of the environment
 
     name = f'running reward of PPO solve {env_name}'
     ax.set_title(name)

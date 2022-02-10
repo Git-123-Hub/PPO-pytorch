@@ -88,7 +88,7 @@ if __name__ == '__main__':
         # todo: exponential
         if args.lr_decay:
             learning_rate = args.learning_rate - args.learning_rate * n / learn_times
-            learning_rate = max(learning_rate, 5e-5)
+            # learning_rate = max(learning_rate, 5e-5)
             for param_group in optimizer.param_groups:
                 param_group['lr'] = learning_rate
 
@@ -181,6 +181,7 @@ if __name__ == '__main__':
             'rewards_to_plot': rewards_to_plot,
             'running_rewards': running_rewards,
             'solved': solved,
+            'goal': goal,
         }, f)
 
     print(f'training time: {time.time() - start_time:.2f}, '
