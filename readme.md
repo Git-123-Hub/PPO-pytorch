@@ -3,6 +3,7 @@
 implementation of ppo(proximal policy optimization) using pytorch
 
 # training result
+
 > red line represents the goal of the environment, specified by open ai gym
 
 > note that not all of these goals are reached,<br>
@@ -22,7 +23,9 @@ implementation of ppo(proximal policy optimization) using pytorch
 python main.py --env-name "Pendulum-v0" --learning-rate 0.0003 --learn-interval 1000 --batch-size 200 --total-steps 300000 --num-process 3
 ```
 
-![Pendulum-v0](./results/Pendulum-v0.png)
+|reward and running reward|multiple running rewards|
+|---|---|
+|![Pendulum-v0](./results/Pendulum-v0.png)|![Pendulum-v0(multiple run)](./results/Pendulum-v0(multiple run).png)
 
 ### HalfCheetah-v3
 
@@ -30,7 +33,9 @@ python main.py --env-name "Pendulum-v0" --learning-rate 0.0003 --learn-interval 
 python main.py --env-name "HalfCheetah-v3" --total-steps 5000000 --learn-interval 2000 --learning-rate 0.0007 --batch-size 2000
 ```
 
-![HalfCheetah-v3](./results/HalfCheetah-v3.png)
+|reward and running reward|multiple running rewards|
+|---|---|
+|![HalfCheetah-v3](./results/HalfCheetah-v3.png)|![HalfCheetah-v3(multiple run)](./results/HalfCheetah-v3(multiple run).png)
 
 ### Swimmer-v3
 
@@ -38,7 +43,9 @@ python main.py --env-name "HalfCheetah-v3" --total-steps 5000000 --learn-interva
 python main.py --env-name "Swimmer-v3" --total-steps 1000000 --learn-interval 2000 --learning-rate 0.0005 --batch-size 1000 --std-decay
 ```
 
-![Swimmer-v3](./results/Swimmer-v3.png)
+|reward and running reward|multiple running rewards|
+|---|---|
+|![Swimmer-v3](./results/Swimmer-v3.png)|![Swimmer-v3(multiple run)](./results/Swimmer-v3(multiple run).png)
 
 ### Hopper-v3
 
@@ -46,7 +53,9 @@ python main.py --env-name "Swimmer-v3" --total-steps 1000000 --learn-interval 20
 python main.py --env-name "Hopper-v3" --total-steps 5000000 --learn-interval 2000 --learning-rate 0.0005 --batch-size 1000 --std-decay
 ```
 
-![Hopper-v3](./results/Hopper-v3.png)
+|reward and running reward|multiple running rewards|
+|---|---|
+|![Hopper-v3](./results/Hopper-v3.png)|![Hopper-v3(multiple run)](./results/Hopper-v3(multiple run).png)
 
 ### Walker2d-v3
 
@@ -54,7 +63,9 @@ python main.py --env-name "Hopper-v3" --total-steps 5000000 --learn-interval 200
 python main.py --env-name "Walker2d-v3" --total-steps 5000000 --learn-interval 2000 --learning-rate 0.0005 --batch-size 1000 --std-decay
 ```
 
-![Walker2d-v3](./results/Walker2d-v3.png)
+|reward and running reward|multiple running rewards|
+|---|---|
+|![Walker2d-v3](./results/Walker2d-v3.png)|![Walker2d-v3(multiple run)](./results/Walker2d-v3(multiple run).png)
 
 # reference
 
